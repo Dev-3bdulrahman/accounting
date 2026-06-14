@@ -1,0 +1,98 @@
+<?php
+return [
+    'title'                  => 'Accounting',
+    'accounts'               => 'Chart of Accounts',
+    'account'                => 'Account',
+    'journal_entries'        => 'Journal Entries',
+    'journal_entry'          => 'Journal Entry',
+    'taxes'                  => 'Taxes',
+    'tax'                    => 'Tax',
+    'expenses'               => 'Expenses',
+    'expense'                => 'Expense',
+    'bank_accounts'          => 'Bank Accounts',
+    'bank_account'           => 'Bank Account',
+    'cost_centers'           => 'Cost Centers',
+    'cost_center'            => 'Cost Center',
+    'fiscal_years'           => 'Fiscal Years',
+    'fiscal_year'            => 'Fiscal Year',
+
+    // Chart of Accounts
+    'account_code'           => 'Code',
+    'account_name'           => 'Account Name',
+    'account_type'           => 'Type',
+    'account_balance'        => 'Balance',
+    'parent_account'         => 'Parent Account',
+    'types'                  => [
+        'asset'     => 'Asset',
+        'liability' => 'Liability',
+        'equity'    => 'Equity',
+        'revenue'   => 'Revenue',
+        'expense'   => 'Expense',
+    ],
+
+    // Journal Entries
+    'entry_number'           => 'Entry #',
+    'entry_date'             => 'Date',
+    'description'            => 'Description',
+    'debit'                  => 'Debit',
+    'credit'                 => 'Credit',
+    'status_draft'           => 'Draft',
+    'status_posted'          => 'Posted',
+    'status_cancelled'       => 'Cancelled',
+    'post_entry'             => 'Post Entry',
+    'balance_error'          => 'Debits must equal credits.',
+
+    // Taxes
+    'tax_name'               => 'Tax Name',
+    'tax_code'               => 'Tax Code',
+    'tax_rate'               => 'Rate (%)',
+    'tax_type'               => 'Type',
+    'tax_scope'              => 'Scope',
+    'type_percentage'        => 'Percentage',
+    'type_fixed'             => 'Fixed',
+    'scope_sale'             => 'Sales',
+    'scope_purchase'         => 'Purchases',
+    'scope_both'             => 'Both',
+
+    // Expenses
+    'expense_reference'      => 'Reference',
+    'expense_date'           => 'Date',
+    'expense_description'    => 'Description',
+    'expense_amount'         => 'Amount',
+    'expense_category'       => 'Category',
+    'expense_status'         => 'Status',
+    'status_approved'        => 'Approved',
+    'status_rejected'        => 'Rejected',
+    'status_paid'            => 'Paid',
+    'approve'                => 'Approve',
+    'reject'                 => 'Reject',
+
+    // Bank Accounts
+    'bank_name'              => 'Bank Name',
+    'account_number_label'   => 'Account Number',
+    'iban'                   => 'IBAN',
+    'swift_code'             => 'SWIFT',
+    'current_balance'        => 'Current Balance',
+    'opening_balance'        => 'Opening Balance',
+
+    // Cost Centers
+    'center_code'            => 'Code',
+    'center_name'            => 'Name',
+    'parent_center'          => 'Parent Center',
+
+    // Common
+    'add'                    => 'Add',
+    'edit'                   => 'Edit',
+    'delete'                 => 'Delete',
+    'save'                   => 'Save',
+    'cancel'                 => 'Cancel',
+    'search'                 => 'Search',
+    'search_placeholder'     => 'Search...',
+    'actions'                => 'Actions',
+    'status'                 => 'Status',
+    'active'                 => 'Active',
+    'inactive'               => 'Inactive',
+    'no_records'             => 'No records found.',
+    'currency'               => 'Currency',
+    'notes'                  => 'Notes',
+];

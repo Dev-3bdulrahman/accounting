@@ -28,10 +28,13 @@ class AccountingServiceProvider extends ServiceProvider
         $this->loadTranslationsFrom(__DIR__ . '/../Translations', 'accounting');
 
         // Register Livewire Components
-        Livewire::component('accounting::admin.accounts.index', \Dev3bdulrahman\Accounting\Http\Controllers\Web\Admin\Accounts\Index::class);
-        Livewire::component('accounting::admin.bank-accounts.index', \Dev3bdulrahman\Accounting\Http\Controllers\Web\Admin\BankAccounts\Index::class);
-        Livewire::component('accounting::admin.expenses.index', \Dev3bdulrahman\Accounting\Http\Controllers\Web\Admin\Expenses\Index::class);
-        Livewire::component('accounting::admin.journal-entries.index', \Dev3bdulrahman\Accounting\Http\Controllers\Web\Admin\JournalEntries\Index::class);
-        Livewire::component('accounting::admin.taxes.index', \Dev3bdulrahman\Accounting\Http\Controllers\Web\Admin\Taxes\Index::class);
+        if (class_exists(Livewire::class)) {
+            Livewire::component('accounting-accounts',        \Dev3bdulrahman\Accounting\Http\Controllers\Web\Admin\Accounts\Index::class);
+            Livewire::component('accounting-bank-accounts',   \Dev3bdulrahman\Accounting\Http\Controllers\Web\Admin\BankAccounts\Index::class);
+            Livewire::component('accounting-expenses',        \Dev3bdulrahman\Accounting\Http\Controllers\Web\Admin\Expenses\Index::class);
+            Livewire::component('accounting-journal-entries', \Dev3bdulrahman\Accounting\Http\Controllers\Web\Admin\JournalEntries\Index::class);
+            Livewire::component('accounting-taxes',           \Dev3bdulrahman\Accounting\Http\Controllers\Web\Admin\Taxes\Index::class);
+            Livewire::component('accounting-cost-centers',    \Dev3bdulrahman\Accounting\Http\Controllers\Web\Admin\CostCenters\Index::class);
+        }
     }
 }

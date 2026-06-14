@@ -18,6 +18,7 @@ class Account extends Model
         'code',
         'name',
         'type',
+        'parent_id',
         'is_active',
     ];
 
@@ -28,5 +29,15 @@ class Account extends Model
     public function entryLines(): HasMany
     {
         return $this->hasMany(JournalEntryLine::class, 'account_id');
+    }
+
+    public function parent(): \Illuminate\Database\Eloquent\Relations\BelongsTo
+    {
+        return $this->belongsTo(Account::class, 'parent_id');
+    }
+
+    public function children(): HasMany
+    {
+        return $this->hasMany(Account::class, 'parent_id');
     }
 }

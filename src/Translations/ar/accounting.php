@@ -1,0 +1,98 @@
+<?php
+return [
+    'title'                  => 'المحاسبة',
+    'accounts'               => 'دليل الحسابات',
+    'account'                => 'حساب',
+    'journal_entries'        => 'القيود اليومية',
+    'journal_entry'          => 'قيد يومي',
+    'taxes'                  => 'الضرائب',
+    'tax'                    => 'ضريبة',
+    'expenses'               => 'المصروفات',
+    'expense'                => 'مصروف',
+    'bank_accounts'          => 'الحسابات البنكية',
+    'bank_account'           => 'حساب بنكي',
+    'cost_centers'           => 'مراكز التكلفة',
+    'cost_center'            => 'مركز تكلفة',
+    'fiscal_years'           => 'السنوات المالية',
+    'fiscal_year'            => 'سنة مالية',
+
+    // Chart of Accounts
+    'account_code'           => 'الرمز',
+    'account_name'           => 'اسم الحساب',
+    'account_type'           => 'النوع',
+    'account_balance'        => 'الرصيد',
+    'parent_account'         => 'الحساب الرئيسي',
+    'types'                  => [
+        'asset'     => 'أصول',
+        'liability' => 'التزامات',
+        'equity'    => 'حقوق الملكية',
+        'revenue'   => 'إيرادات',
+        'expense'   => 'مصروفات',
+    ],
+
+    // Journal Entries
+    'entry_number'           => 'رقم القيد',
+    'entry_date'             => 'التاريخ',
+    'description'            => 'الوصف',
+    'debit'                  => 'مدين',
+    'credit'                 => 'دائن',
+    'status_draft'           => 'مسودة',
+    'status_posted'          => 'معتمد',
+    'status_cancelled'       => 'ملغي',
+    'post_entry'             => 'اعتماد القيد',
+    'balance_error'          => 'يجب أن يتساوى الجانبان المدين والدائن.',
+
+    // Taxes
+    'tax_name'               => 'اسم الضريبة',
+    'tax_code'               => 'رمز الضريبة',
+    'tax_rate'               => 'النسبة (%)',
+    'tax_type'               => 'النوع',
+    'tax_scope'              => 'النطاق',
+    'type_percentage'        => 'نسبة مئوية',
+    'type_fixed'             => 'مبلغ ثابت',
+    'scope_sale'             => 'مبيعات',
+    'scope_purchase'         => 'مشتريات',
+    'scope_both'             => 'الاثنان',
+
+    // Expenses
+    'expense_reference'      => 'المرجع',
+    'expense_date'           => 'التاريخ',
+    'expense_description'    => 'الوصف',
+    'expense_amount'         => 'المبلغ',
+    'expense_category'       => 'التصنيف',
+    'expense_status'         => 'الحالة',
+    'status_approved'        => 'معتمد',
+    'status_rejected'        => 'مرفوض',
+    'status_paid'            => 'مدفوع',
+    'approve'                => 'اعتماد',
+    'reject'                 => 'رفض',
+
+    // Bank Accounts
+    'bank_name'              => 'اسم البنك',
+    'account_number_label'   => 'رقم الحساب',
+    'iban'                   => 'الآيبان',
+    'swift_code'             => 'سويفت',
+    'current_balance'        => 'الرصيد الحالي',
+    'opening_balance'        => 'رصيد الافتتاح',
+
+    // Cost Centers
+    'center_code'            => 'الرمز',
+    'center_name'            => 'الاسم',
+    'parent_center'          => 'المركز الرئيسي',
+
+    // Common
+    'add'                    => 'إضافة',
+    'edit'                   => 'تعديل',
+    'delete'                 => 'حذف',
+    'save'                   => 'حفظ',
+    'cancel'                 => 'إلغاء',
+    'search'                 => 'بحث',
+    'search_placeholder'     => 'بحث...',
+    'actions'                => 'العمليات',
+    'status'                 => 'الحالة',
+    'active'                 => 'نشط',
+    'inactive'               => 'غير نشط',
+    'no_records'             => 'لا توجد سجلات.',
+    'currency'               => 'العملة',
+    'notes'                  => 'ملاحظات',
+];
