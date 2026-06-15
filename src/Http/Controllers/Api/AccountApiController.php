@@ -3,135 +3,104 @@
 namespace Dev3bdulrahman\Accounting\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
+use App\Traits\HasApiResponse;
 use Dev3bdulrahman\Accounting\Models\Account;
 use Dev3bdulrahman\Accounting\Http\Resources\AccountResource;
-use Illuminate\Http\Request;
+use Dev3bdulrahman\Accounting\Http\Requests\Api\StoreAccountApiRequest;
+use Dev3bdulrahman\Accounting\Http\Requests\Api\UpdateAccountApiRequest;
+use Dev3bdulrahman\Accounting\Services\AccountService;
 use Illuminate\Http\JsonResponse;
+use Illuminate\Http\Request;
 
 class AccountApiController extends Controller
 {
+    use HasApiResponse;
+
+    public function __construct(
+        private AccountService $accountService,
+    ) {}
+
     public function index(Request $request): JsonResponse
     {
+        $this->authorize('viewAny', Account::class);
+
         $companyId = session('active_company_id') ?: auth()->user()->company_id;
-        $perPage = (int)$request->get('per_page', 15);
 
-        $accounts = Account::where('company_id', $companyId)
-            ->when($request->get('search'), function($q) use ($request) {
-                $q->where(function($sub) use ($request) {
-                    $sub->where('name', 'like', '%' . $request->get('search') . '%')
-                       ->orWhere('code', 'like', '%' . $request->get('search') . '%');
-                });
-            })
-            ->when($request->get('type'), function($q) use ($request) {
-                $q->where('type', $request->get('type'));
-            })
-            ->orderBy('code', 'asc')
-            ->paginate($perPage);
+        $accounts = $this->accountService->listAccounts([
+            'search' => $request->get('search'),
+            'type' => $request->get('type'),
+            'is_active' => $request->get('is_active'),
+            'company_id' => $companyId,
+        ], (int) $request->get('per_page', 15));
 
-        return response()->json([
-            'success' => true,
-            'message' => __('Accounts retrieved successfully'),
-            'data' => AccountResource::collection($accounts->items()),
-            'meta' => [
+        return $this->success(
+            data: AccountResource::collection($accounts->items()),
+            message: 'Accounts retrieved successfully',
+            meta: [
                 'current_page' => $accounts->currentPage(),
                 'last_page' => $accounts->lastPage(),
                 'per_page' => $accounts->perPage(),
                 'total' => $accounts->total(),
-            ],
-            'errors' => []
-        ]);
+            ]
+        );
     }
 
-    public function store(Request $request): JsonResponse
+    public function store(StoreAccountApiRequest $request): JsonResponse
     {
-        $validated = $request->validate([
-            'code' => 'required|string|max:50',
-            'name' => 'required|string|max:255',
-            'type' => 'required|string|in:asset,liability,equity,revenue,expense',
-            'is_active' => 'nullable|boolean',
-        ]);
+        $this->authorize('create', Account::class);
 
-        $companyId = session('active_company_id') ?: auth()->user()->company_id;
+        try {
+            $account = $this->accountService->create($request->validated());
 
-        // Check uniqueness of code per company
-        $exists = Account::where('company_id', $companyId)->where('code', $validated['code'])->exists();
-        if ($exists) {
-            return response()->json([
-                'success' => false,
-                'message' => __('Account code already exists'),
-                'errors' => ['code' => [__('Account code must be unique')]]
-            ], 422);
+            return $this->success(
+                data: new AccountResource($account),
+                message: 'Account created successfully',
+                code: 201
+            );
+        } catch (\InvalidArgumentException $e) {
+            return $this->error($e->getMessage(), 422);
         }
-
-        $validated['company_id'] = $companyId;
-        $account = Account::create($validated);
-
-        return response()->json([
-            'success' => true,
-            'message' => __('Account created successfully'),
-            'data' => new AccountResource($account),
-            'errors' => []
-        ], 201);
     }
 
-    public function show($id): JsonResponse
+    public function show(Account $account): JsonResponse
     {
-        $companyId = session('active_company_id') ?: auth()->user()->company_id;
-        $account = Account::where('company_id', $companyId)->findOrFail($id);
+        $this->authorize('view', $account);
 
-        return response()->json([
-            'success' => true,
-            'message' => __('Account retrieved successfully'),
-            'data' => new AccountResource($account),
-            'errors' => []
-        ]);
+        return $this->success(
+            data: new AccountResource($account),
+            message: 'Account retrieved successfully'
+        );
     }
 
-    public function update(Request $request, $id): JsonResponse
+    public function update(UpdateAccountApiRequest $request, Account $account): JsonResponse
     {
-        $companyId = session('active_company_id') ?: auth()->user()->company_id;
-        $account = Account::where('company_id', $companyId)->findOrFail($id);
+        $this->authorize('update', $account);
 
-        $validated = $request->validate([
-            'code' => 'sometimes|required|string|max:50',
-            'name' => 'sometimes|required|string|max:255',
-            'type' => 'sometimes|required|string|in:asset,liability,equity,revenue,expense',
-            'is_active' => 'nullable|boolean',
-        ]);
+        try {
+            $account = $this->accountService->update($account, $request->validated());
 
-        if (isset($validated['code']) && $validated['code'] !== $account->code) {
-            $exists = Account::where('company_id', $companyId)->where('code', $validated['code'])->exists();
-            if ($exists) {
-                return response()->json([
-                    'success' => false,
-                    'message' => __('Account code already exists'),
-                    'errors' => ['code' => [__('Account code must be unique')]]
-                ], 422);
-            }
+            return $this->success(
+                data: new AccountResource($account),
+                message: 'Account updated successfully'
+            );
+        } catch (\InvalidArgumentException $e) {
+            return $this->error($e->getMessage(), 422);
         }
-
-        $account->update($validated);
-
-        return response()->json([
-            'success' => true,
-            'message' => __('Account updated successfully'),
-            'data' => new AccountResource($account),
-            'errors' => []
-        ]);
     }
 
-    public function destroy($id): JsonResponse
+    public function destroy(Account $account): JsonResponse
     {
-        $companyId = session('active_company_id') ?: auth()->user()->company_id;
-        $account = Account::where('company_id', $companyId)->findOrFail($id);
-        
-        $account->delete();
+        $this->authorize('delete', $account);
 
-        return response()->json([
-            'success' => true,
-            'message' => __('Account deleted successfully'),
-            'data' => null,
-            'errors' => []
-        ]);
+        try {
+            $this->accountService->delete($account);
+
+            return $this->success(
+                data: null,
+                message: 'Account deleted successfully'
+            );
+        } catch (\LogicException $e) {
+            return $this->error($e->getMessage(), 422);
+        }
     }
 }

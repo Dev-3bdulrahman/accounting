@@ -3,138 +3,109 @@
 namespace Dev3bdulrahman\Accounting\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
+use App\Traits\HasApiResponse;
 use Dev3bdulrahman\Accounting\Models\JournalEntry;
-use Dev3bdulrahman\Accounting\Models\JournalEntryLine;
 use Dev3bdulrahman\Accounting\Http\Resources\JournalEntryResource;
-use Illuminate\Http\Request;
+use Dev3bdulrahman\Accounting\Http\Requests\Api\StoreJournalEntryApiRequest;
+use Dev3bdulrahman\Accounting\Services\JournalEntryService;
+use Dev3bdulrahman\Accounting\Events\JournalEntryPosted;
 use Illuminate\Http\JsonResponse;
-use Illuminate\Support\Facades\DB;
+use Illuminate\Http\Request;
 
 class JournalEntryApiController extends Controller
 {
+    use HasApiResponse;
+
+    public function __construct(
+        private JournalEntryService $journalEntryService,
+    ) {}
+
     public function index(Request $request): JsonResponse
     {
+        $this->authorize('viewAny', JournalEntry::class);
+
         $companyId = session('active_company_id') ?: auth()->user()->company_id;
-        $perPage = (int)$request->get('per_page', 15);
 
-        $entries = JournalEntry::where('company_id', $companyId)
-            ->with('lines.account')
-            ->when($request->get('status'), function($q) use ($request) {
-                $q->where('status', $request->get('status'));
-            })
-            ->when($request->get('entry_date'), function($q) use ($request) {
-                $q->whereDate('entry_date', $request->get('entry_date'));
-            })
-            ->orderBy('entry_date', 'desc')
-            ->paginate($perPage);
+        $entries = $this->journalEntryService->listEntries([
+            'search' => $request->get('search'),
+            'status' => $request->get('status'),
+            'date_from' => $request->get('date_from'),
+            'date_to' => $request->get('date_to'),
+            'company_id' => $companyId,
+        ], (int) $request->get('per_page', 15));
 
-        return response()->json([
-            'success' => true,
-            'message' => __('Journal entries retrieved successfully'),
-            'data' => JournalEntryResource::collection($entries->items()),
-            'meta' => [
+        return $this->success(
+            data: JournalEntryResource::collection($entries->items()),
+            message: 'Journal entries retrieved successfully',
+            meta: [
                 'current_page' => $entries->currentPage(),
                 'last_page' => $entries->lastPage(),
                 'per_page' => $entries->perPage(),
                 'total' => $entries->total(),
-            ],
-            'errors' => []
-        ]);
+            ]
+        );
     }
 
-    public function store(Request $request): JsonResponse
+    public function store(StoreJournalEntryApiRequest $request): JsonResponse
     {
-        $validated = $request->validate([
-            'entry_number' => 'required|string|max:50',
-            'entry_date' => 'required|date',
-            'description' => 'nullable|string',
-            'status' => 'nullable|string|in:draft,posted',
-            'lines' => 'required|array|min:2',
-            'lines.*.account_id' => 'required|integer|exists:accounting_accounts,id',
-            'lines.*.debit' => 'nullable|numeric|min:0',
-            'lines.*.credit' => 'nullable|numeric|min:0',
-            'lines.*.description' => 'nullable|string',
-        ]);
+        $this->authorize('create', JournalEntry::class);
 
-        $companyId = session('active_company_id') ?: auth()->user()->company_id;
+        try {
+            $entry = $this->journalEntryService->create($request->validated());
 
-        // Verify total debits match total credits
-        $totalDebit = 0;
-        $totalCredit = 0;
-        foreach ($validated['lines'] as $line) {
-            $totalDebit += (float)($line['debit'] ?? 0);
-            $totalCredit += (float)($line['credit'] ?? 0);
+            return $this->success(
+                data: new JournalEntryResource($entry),
+                message: 'Journal entry created successfully',
+                code: 201
+            );
+        } catch (\InvalidArgumentException $e) {
+            return $this->error($e->getMessage(), 422);
         }
+    }
 
-        if (abs($totalDebit - $totalCredit) > 0.0001) {
-            return response()->json([
-                'success' => false,
-                'message' => __('Journal entry is unbalanced'),
-                'errors' => ['lines' => [__('Total Debit (:debit) must equal Total Credit (:credit)', ['debit' => $totalDebit, 'credit' => $totalCredit])]]
-            ], 422);
+    public function show(JournalEntry $journalEntry): JsonResponse
+    {
+        $this->authorize('view', $journalEntry);
+
+        $journalEntry->load('lines.account');
+
+        return $this->success(
+            data: new JournalEntryResource($journalEntry),
+            message: 'Journal entry retrieved successfully'
+        );
+    }
+
+    public function post(JournalEntry $journalEntry): JsonResponse
+    {
+        $this->authorize('post', $journalEntry);
+
+        try {
+            $entry = $this->journalEntryService->post($journalEntry);
+
+            JournalEntryPosted::dispatch($entry, auth()->id(), $entry->company_id);
+
+            return $this->success(
+                data: new JournalEntryResource($entry),
+                message: 'Journal entry posted successfully'
+            );
+        } catch (\InvalidArgumentException|\LogicException $e) {
+            return $this->error($e->getMessage(), 422);
         }
-
-        $entry = DB::transaction(function() use ($validated, $companyId) {
-            $journalEntry = JournalEntry::create([
-                'company_id' => $companyId,
-                'branch_id' => auth()->user()->branch_id,
-                'entry_number' => $validated['entry_number'],
-                'entry_date' => $validated['entry_date'],
-                'description' => $validated['description'] ?? null,
-                'status' => $validated['status'] ?? 'draft',
-                'created_by' => auth()->id(),
-            ]);
-
-            foreach ($validated['lines'] as $line) {
-                JournalEntryLine::create([
-                    'journal_entry_id' => $journalEntry->id,
-                    'account_id' => $line['account_id'],
-                    'debit' => $line['debit'] ?? 0,
-                    'credit' => $line['credit'] ?? 0,
-                    'description' => $line['description'] ?? null,
-                ]);
-            }
-
-            return $journalEntry;
-        });
-
-        $entry->load('lines.account');
-
-        return response()->json([
-            'success' => true,
-            'message' => __('Journal entry created successfully'),
-            'data' => new JournalEntryResource($entry),
-            'errors' => []
-        ], 201);
     }
 
-    public function show($id): JsonResponse
+    public function destroy(JournalEntry $journalEntry): JsonResponse
     {
-        $companyId = session('active_company_id') ?: auth()->user()->company_id;
-        $entry = JournalEntry::where('company_id', $companyId)
-            ->with('lines.account')
-            ->findOrFail($id);
+        $this->authorize('delete', $journalEntry);
 
-        return response()->json([
-            'success' => true,
-            'message' => __('Journal entry retrieved successfully'),
-            'data' => new JournalEntryResource($entry),
-            'errors' => []
-        ]);
-    }
+        try {
+            $this->journalEntryService->delete($journalEntry);
 
-    public function destroy($id): JsonResponse
-    {
-        $companyId = session('active_company_id') ?: auth()->user()->company_id;
-        $entry = JournalEntry::where('company_id', $companyId)->findOrFail($id);
-        
-        $entry->delete();
-
-        return response()->json([
-            'success' => true,
-            'message' => __('Journal entry deleted successfully'),
-            'data' => null,
-            'errors' => []
-        ]);
+            return $this->success(
+                data: null,
+                message: 'Journal entry deleted successfully'
+            );
+        } catch (\LogicException $e) {
+            return $this->error($e->getMessage(), 422);
+        }
     }
 }
