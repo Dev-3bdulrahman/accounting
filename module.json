@@ -1,0 +1,11 @@
+{
+    "name": "Accounting",
+    "slug": "accounting",
+    "version": "1.0.0",
+    "description": "Financial Accounting & Journals",
+    "description_ar": "المحاسبة المالية والقيود",
+    "is_active": true,
+    "provider": "Dev3bdulrahman\\Accounting\\Providers\\AccountingServiceProvider",
+    "dependencies": [],
+    "order": 5
+}
