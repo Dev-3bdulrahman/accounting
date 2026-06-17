@@ -2,7 +2,7 @@
     "name": "dev-3bdulrahman/accounting",
     "description": "A full-featured Accounting module for Laravel ERP — journal entries, accounts, taxes, expenses & bank accounts.",
     "type": "library",
-    "version": "1.0.0",
+    "version": "1.0.2",
     "license": "MIT",
     "authors": [
         {
