@@ -80,11 +80,22 @@ class CreateJournalEntryOnInvoiceIssued implements ShouldQueue
                 $q->where('code', 'like', '12%')
                   ->orWhere(function ($q2) {
                       $q2->where('type', 'asset')
-                         ->where('name', 'like', '%receivable%');
+                         ->where(function ($q3) {
+                             $q3->where('name', 'like', '%receivable%')
+                                ->orWhere('name', 'like', '%عملاء%')
+                                ->orWhere('name', 'like', '%العملاء%')
+                                ->orWhere('name', 'like', '%مدين%');
+                         });
                   });
-            })->first(),
+            })->first() ?? Account::where('company_id', $companyId)->where('is_active', true)->where('type', 'asset')->first(),
 
-            'sales_revenue' => $query->where('type', 'revenue')->first(),
+            'sales_revenue' => $query->where('type', 'revenue')->first() 
+                ?? Account::where('company_id', $companyId)->where('is_active', true)
+                    ->where(function ($q) {
+                        $q->where('name', 'like', '%مبيعات%')
+                          ->orWhere('name', 'like', '%إيراد%')
+                          ->orWhere('name', 'like', '%sales%');
+                    })->first(),
 
             default => null,
         };

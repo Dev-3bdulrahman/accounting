@@ -80,18 +80,26 @@ class CreateJournalEntryOnPaymentReceived implements ShouldQueue
                       $q2->where('type', 'asset')
                          ->where(function ($q3) {
                              $q3->where('name', 'like', '%cash%')
-                                ->orWhere('name', 'like', '%bank%');
+                                ->orWhere('name', 'like', '%bank%')
+                                ->orWhere('name', 'like', '%صندوق%')
+                                ->orWhere('name', 'like', '%بنك%')
+                                ->orWhere('name', 'like', '%خزينة%');
                          });
                   });
-            })->first(),
+            })->first() ?? Account::where('company_id', $companyId)->where('is_active', true)->where('type', 'asset')->first(),
 
             'accounts_receivable' => $query->where(function ($q) {
                 $q->where('code', 'like', '12%')
                   ->orWhere(function ($q2) {
                       $q2->where('type', 'asset')
-                         ->where('name', 'like', '%receivable%');
+                         ->where(function ($q3) {
+                             $q3->where('name', 'like', '%receivable%')
+                                ->orWhere('name', 'like', '%عملاء%')
+                                ->orWhere('name', 'like', '%العملاء%')
+                                ->orWhere('name', 'like', '%مدين%');
+                         });
                   });
-            })->first(),
+            })->first() ?? Account::where('company_id', $companyId)->where('is_active', true)->where('type', 'asset')->first(),
 
             default => null,
         };

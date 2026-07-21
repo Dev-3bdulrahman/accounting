@@ -18,6 +18,7 @@ use Dev3bdulrahman\Accounting\Listeners\LogJournalEntryPosted;
 use Dev3bdulrahman\Accounting\Listeners\LogExpenseApproved;
 use Dev3bdulrahman\Accounting\Listeners\CreateJournalEntryOnInvoiceIssued;
 use Dev3bdulrahman\Accounting\Listeners\CreateJournalEntryOnPaymentReceived;
+use Dev3bdulrahman\Accounting\Listeners\CreateJournalEntryOnSupplierInvoiceIssued;
 use Dev3bdulrahman\Accounting\Listeners\CreateJournalEntryOnSupplierPayment;
 use Dev3bdulrahman\Accounting\Listeners\CreateJournalEntryOnStockAdjustment;
 
@@ -55,6 +56,7 @@ class AccountingServiceProvider extends ServiceProvider
         // Cross-package accounting integration listeners
         Event::listen(\Dev3bdulrahman\Sales\Events\InvoiceIssued::class, CreateJournalEntryOnInvoiceIssued::class);
         Event::listen(\Dev3bdulrahman\Sales\Events\PaymentReceived::class, CreateJournalEntryOnPaymentReceived::class);
+        Event::listen(\Dev3bdulrahman\Purchases\Events\SupplierInvoiceIssued::class, CreateJournalEntryOnSupplierInvoiceIssued::class);
         Event::listen(\Dev3bdulrahman\Purchases\Events\SupplierPaymentMade::class, CreateJournalEntryOnSupplierPayment::class);
         Event::listen(\Dev3bdulrahman\Inventory\Events\StockAdjustmentApproved::class, CreateJournalEntryOnStockAdjustment::class);
 

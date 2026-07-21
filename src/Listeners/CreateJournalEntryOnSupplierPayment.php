@@ -76,8 +76,13 @@ class CreateJournalEntryOnSupplierPayment implements ShouldQueue
         return match ($type) {
             'accounts_payable' => $query->where(function ($q) {
                 $q->where('type', 'liability')
-                  ->where('name', 'like', '%payable%');
-            })->first(),
+                  ->where(function ($q2) {
+                      $q2->where('name', 'like', '%payable%')
+                         ->orWhere('name', 'like', '%مورد%')
+                         ->orWhere('name', 'like', '%المورد%')
+                         ->orWhere('name', 'like', '%دائن%');
+                  });
+            })->first() ?? Account::where('company_id', $companyId)->where('is_active', true)->where('type', 'liability')->first(),
 
             'cash_or_bank' => $query->where(function ($q) {
                 $q->where('code', 'like', '11%')
@@ -85,10 +90,13 @@ class CreateJournalEntryOnSupplierPayment implements ShouldQueue
                       $q2->where('type', 'asset')
                          ->where(function ($q3) {
                              $q3->where('name', 'like', '%cash%')
-                                ->orWhere('name', 'like', '%bank%');
+                                ->orWhere('name', 'like', '%bank%')
+                                ->orWhere('name', 'like', '%صندوق%')
+                                ->orWhere('name', 'like', '%بنك%')
+                                ->orWhere('name', 'like', '%خزينة%');
                          });
                   });
-            })->first(),
+            })->first() ?? Account::where('company_id', $companyId)->where('is_active', true)->where('type', 'asset')->first(),
 
             default => null,
         };
